@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser - Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        .header {
+            background: linear-gradient(to right, #3a1c71, #d76d77, #ffaf7b);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        .resume-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+        .section-title {
+            border-bottom: 2px solid #3a1c71;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            color: #3a1c71;
+        }
+        .skill-tag {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            margin: 3px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        .experience-date {
+            font-style: italic;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+        .contact-icon {
+            margin-right: 8px;
+            color: #3a1c71;
+        }
+        .personal-info-header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .profile-name {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #3a1c71;
+            margin-bottom: 5px;
+        }
+        .profile-links {
+            margin-top: 10px;
+        }
+        .profile-links a {
+            text-decoration: none;
+            margin-right: 15px;
+            color: #333;
+        }
+        .profile-links a:hover {
+            color: #3a1c71;
+        }
+        .cert-badge {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .project-title {
+            font-weight: 600;
+            color: #3a1c71;
+        }
+        .project-date {
+            font-style: italic;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .skill-category {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .tech-tag {
+            display: inline-block;
+            background-color: #e9f5ff;
+            color: #0077cc;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .hobby-tag {
+            display: inline-block;
+            background-color: #f9f2ff;
+            color: #7b2cbf;
+            padding: 5px 10px;
+            margin: 3px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        .publication-item {
+            padding: 10px;
+            border-left: 3px solid #3a1c71;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+        .contact-section {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .contact-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .edit-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #3a1c71;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }
+        .edit-icon:hover {
+            opacity: 1;
+        }
+        .contact-value {
+            display: inline-block;
+        }
+        .contact-input {
+            display: none;
+            width: 90%;
+            padding: 2px 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .save-btn {
+            display: none;
+            margin-left: 5px;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            background-color: #3a1c71;
+            border: none;
+            color: white;
+            border-radius: 3px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .resume-section {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            body {
+                font-size: 12pt;
+            }
+            .edit-icon, .save-btn {
+                display: none !important;
+            }
+        }
+        .action-buttons {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="header no-print">
+        <div class="container">
+            <h1 class="display-4">Resume Parser</h1>
+            <p class="lead">Parsed Resume Results</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show no-print" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="action-buttons no-print">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary"><i class="bi bi-arrow-left"></i> Upload Another Resume</a>
+            <button class="btn btn-success" onclick="window.print()"><i class="bi bi-printer"></i> Print / Save PDF</button>
+        </div>
+
+        <div class="resume-content">
+            <!-- Personal Information -->
+            {% if resume.personal_info %}
+            <div class="resume-section">
+                <div class="personal-info-header">
+                    <div class="profile-name">{{ resume.personal_info.name }}</div>
+                    
+                    <!-- Separate contact sections with edit functionality -->
+                    <div class="row mt-3">
+                        {% if resume.personal_info.email %}
+                        <div class="col-md-4 col-sm-6 mb-2">
+                            <div class="contact-section" id="email-section">
+                                <div class="contact-section-title">Email</div>
+                                <i class="bi bi-envelope contact-icon"></i>
+                                <span class="contact-value" id="email-value">{{ resume.personal_info.email }}</span>
+                                <input type="email" class="contact-input" id="email-input" value="{{ resume.personal_info.email }}">
+                                <button class="save-btn" id="email-save">Save</button>
+                                <i class="bi bi-pencil-fill edit-icon" id="email-edit"></i>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if resume.personal_info.phone %}
+                        <div class="col-md-4 col-sm-6 mb-2">
+                            <div class="contact-section" id="phone-section">
+                                <div class="contact-section-title">Phone</div>
+                                <i class="bi bi-telephone contact-icon"></i>
+                                <span class="contact-value" id="phone-value">{{ resume.personal_info.phone }}</span>
+                                <input type="tel" class="contact-input" id="phone-input" value="{{ resume.personal_info.phone }}">
+                                <button class="save-btn" id="phone-save">Save</button>
+                                <i class="bi bi-pencil-fill edit-icon" id="phone-edit"></i>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if resume.personal_info.address %}
+                        <div class="col-md-4 col-sm-6 mb-2">
+                            <div class="contact-section" id="address-section">
+                                <div class="contact-section-title">Address</div>
+                                <i class="bi bi-geo-alt contact-icon"></i>
+                                <span class="contact-value" id="address-value">{{ resume.personal_info.address }}</span>
+                                <input type="text" class="contact-input" id="address-input" value="{{ resume.personal_info.address }}">
+                                <button class="save-btn" id="address-save">Save</button>
+                                <i class="bi bi-pencil-fill edit-icon" id="address-edit"></i>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Professional links in separate section with edit functionality -->
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <div class="contact-section">
+                                <div class="contact-section-title">Professional Links</div>
+                                <div class="profile-links">
+                                    {% if resume.personal_info.linkedin %}
+                                    <div class="d-inline-block me-3 mb-2" id="linkedin-section">
+                                        <i class="bi bi-linkedin contact-icon"></i>
+                                        <span class="contact-value" id="linkedin-value">LinkedIn</span>
+                                        <input type="url" class="contact-input" id="linkedin-input" value="{{ resume.personal_info.linkedin }}">
+                                        <button class="save-btn" id="linkedin-save">Save</button>
+                                        <i class="bi bi-pencil-fill edit-icon" id="linkedin-edit"></i>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if resume.personal_info.github %}
+                                    <div class="d-inline-block me-3 mb-2" id="github-section">
+                                        <i class="bi bi-github contact-icon"></i>
+                                        <span class="contact-value" id="github-value">GitHub</span>
+                                        <input type="url" class="contact-input" id="github-input" value="{{ resume.personal_info.github }}">
+                                        <button class="save-btn" id="github-save">Save</button>
+                                        <i class="bi bi-pencil-fill edit-icon" id="github-edit"></i>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if resume.personal_info.website %}
+                                    <div class="d-inline-block me-3 mb-2" id="website-section">
+                                        <i class="bi bi-globe contact-icon"></i>
+                                        <span class="contact-value" id="website-value">Portfolio</span>
+                                        <input type="url" class="contact-input" id="website-input" value="{{ resume.personal_info.website }}">
+                                        <button class="save-btn" id="website-save">Save</button>
+                                        <i class="bi bi-pencil-fill edit-icon" id="website-edit"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Summary/Objective -->
+            {% if resume.objective %}
+            <div class="resume-section">
+                <h3 class="section-title">Objective </h3>
+                <p>{{ resume.objective }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Education -->
+            {% if resume.education %}
+            <div class="resume-section">
+                <h3 class="section-title">Education </h3>
+                {% for edu in resume.education %}
+                <div class="mb-3">
+                    {% if edu.degree %}<h5>{{ edu.degree }}</h5>{% endif %}
+                    {% if edu.institution %}<div><strong>{{ edu.institution }}</strong>{% if edu.location %}, {{ edu.location }}{% endif %}</div>{% endif %}
+                    {% if edu.dates %}<div class="experience-date">{{ edu.dates }}</div>{% endif %}
+                    {% if edu.gpa %}<div>GPA: {{ edu.gpa }}</div>{% endif %}
+                    {% if edu.details %}<div>{{ edu.details }}</div>{% endif %}
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Skills -->
+            {% if resume.skills %}
+            <div class="resume-section">
+                <h3 class="section-title">Skills </h3>
+                <div class="row">
+                    {% if resume.skills.programming_languages and resume.skills.programming_languages|length > 0 %}
+                    <div class="col-md-6 mb-3">
+                        <div class="skill-category">Programming Languages</div>
+                        <div>
+                            {% for skill in resume.skills.programming_languages %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if resume.skills.ai_ml and resume.skills.ai_ml|length > 0 %}
+                    <div class="col-md-6 mb-3">
+                        <div class="skill-category">AI/ML</div>
+                        <div>
+                            {% for skill in resume.skills.ai_ml %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if resume.skills.database and resume.skills.database|length > 0 %}
+                    <div class="col-md-6 mb-3">
+                        <div class="skill-category">Database</div>
+                        <div>
+                            {% for skill in resume.skills.database %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if resume.skills.tools and resume.skills.tools|length > 0 %}
+                    <div class="col-md-6 mb-3">
+                        <div class="skill-category">Tools</div>
+                        <div>
+                            {% for skill in resume.skills.tools %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if resume.skills.data_analysis and resume.skills.data_analysis|length > 0 %}
+                    <div class="col-md-6 mb-3">
+                        <div class="skill-category">Data Analysis</div>
+                        <div>
+                            {% for skill in resume.skills.data_analysis %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if resume.skills.cloud_platforms and resume.skills.cloud_platforms|length > 0 %}
+                    <div class="col-md-6 mb-3">
+                        <div class="skill-category">Cloud Platforms</div>
+                        <div>
+                            {% for skill in resume.skills.cloud_platforms %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if resume.skills.other_skills and resume.skills.other_skills|length > 0 %}
+                    <div class="col-md-6 mb-3">
+                        <div class="skill-category">Other Skills</div>
+                        <div>
+                            {% for skill in resume.skills.other_skills %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Work Experience -->
+            {% if resume.work_experience and resume.work_experience|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Work Experience </h3>
+                {% for exp in resume.work_experience %}
+                <div class="mb-4">
+                    {% if exp.title %}<h5>{{ exp.title }}</h5>{% endif %}
+                    {% if exp.company %}<div><strong>{{ exp.company }}</strong>{% if exp.location %}, {{ exp.location }}{% endif %}</div>{% endif %}
+                    {% if exp.dates %}<div class="experience-date">{{ exp.dates }}</div>{% endif %}
+                    
+                    {% if exp.description and exp.description|length > 0 %}
+                    <ul class="mt-2">
+                        {% for item in exp.description %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Internships -->
+            {% if resume.internships and resume.internships|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Internships </h3>
+                {% for internship in resume.internships %}
+                <div class="mb-4">
+                    {% if internship.title %}<h5>{{ internship.title }}</h5>{% endif %}
+                    {% if internship.company %}<div><strong>{{ internship.company }}</strong>{% if internship.location %}, {{ internship.location }}{% endif %}</div>{% endif %}
+                    {% if internship.dates %}<div class="experience-date">{{ internship.dates }}</div>{% endif %}
+                    
+                    {% if internship.description and internship.description|length > 0 %}
+                    <ul class="mt-2">
+                        {% for item in internship.description %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Projects -->
+            {% if resume.projects and resume.projects|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Projects </h3>
+                {% for project in resume.projects %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="project-title">
+                            {{ project.name }}
+                            {% if project.link %}
+                            <a href="{{ project.link }}" target="_blank" class="ms-2 small"><i class="bi bi-link-45deg"></i></a>
+                            {% endif %}
+                        </span>
+                        {% if project.date %}<span class="project-date">{{ project.date }}</span>{% endif %}
+                    </div>
+                    
+                    {% if project.technologies and project.technologies|length > 0 %}
+                    <div class="mt-1 mb-2">
+                        {% for tech in project.technologies %}
+                            <span class="tech-tag">{{ tech }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if project.description %}<p class="mb-0 mt-1">{{ project.description }}</p>{% endif %}
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Publications -->
+            {% if resume.publications and resume.publications|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Publications </h3>
+                {% for pub in resume.publications %}
+                <div class="publication-item">
+                    <div><strong>{{ pub.title }}</strong></div>
+                    {% if pub.authors %}<div>{{ pub.authors }}</div>{% endif %}
+                    {% if pub.journal %}<div><em>{{ pub.journal }}</em>{% if pub.date %}, {{ pub.date }}{% endif %}</div>{% endif %}
+                    {% if pub.link %}
+                    <div class="mt-1">
+                        <a href="{{ pub.link }}" target="_blank" class="small">View Publication <i class="bi bi-box-arrow-up-right"></i></a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Certifications -->
+            {% if resume.certifications and resume.certifications|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Certifications </h3>
+                <div class="row">
+                    {% for cert in resume.certifications %}
+                    <div class="col-md-6 mb-3">
+                        <div class="cert-badge">
+                            <div><strong>{{ cert.name }}</strong></div>
+                            {% if cert.issuer %}<div>{{ cert.issuer }}</div>{% endif %}
+                            {% if cert.date %}<div class="experience-date">{{ cert.date }}</div>{% endif %}
+                            {% if cert.verification %}
+                            <div class="small mt-1">
+                                <a href="{{ cert.verification }}" target="_blank">Verify <i class="bi bi-check-circle"></i></a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Volunteer Experience -->
+            {% if resume.volunteer_experience and resume.volunteer_experience|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Volunteer Experience </h3>
+                {% for vol in resume.volunteer_experience %}
+                <div class="mb-3">
+                    {% if vol.role %}<h5>{{ vol.role }}</h5>{% endif %}
+                    {% if vol.organization %}<div><strong>{{ vol.organization }}</strong></div>{% endif %}
+                    {% if vol.dates %}<div class="experience-date">{{ vol.dates }}</div>{% endif %}
+                    {% if vol.description %}<p>{{ vol.description }}</p>{% endif %}
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Languages -->
+            {% if resume.languages and resume.languages|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Languages </h3>
+                <div>
+                    {% for language in resume.languages %}
+                    <span class="skill-tag">{{ language }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Hobbies and Interests -->
+            {% if resume.hobbies and resume.hobbies|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Hobbies & Interests </h3>
+                <div>
+                    {% for hobby in resume.hobbies %}
+                    <span class="hobby-tag"><i class="bi bi-heart-fill me-1 small"></i> {{ hobby }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Achievements -->
+            {% if resume.achievements and resume.achievements|length > 0 %}
+            <div class="resume-section">
+                <h3 class="section-title">Achievements & Awards </h3>
+                <ul>
+                    {% for achievement in resume.achievements %}
+                    <li>{{ achievement }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <button class="btn btn-primary btn-lg rounded-circle print-btn no-print" onclick="window.print()">
+        <i class="bi bi-printer"></i>
+    </button>
+
+    <footer class="bg-light py-4 mt-5 no-print">
+        <div class="container text-center">
+            <p class="mb-0">Resume Parser Application &copy; 2025</p>
+        </div>  
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- JavaScript for edit functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to set up edit functionality for each editable field
+            function setupEditableField(fieldId) {
+                const valueElem = document.getElementById(`${fieldId}-value`);
+                const inputElem = document.getElementById(`${fieldId}-input`);
+                const editBtn = document.getElementById(`${fieldId}-edit`);
+                const saveBtn = document.getElementById(`${fieldId}-save`);
+                
+                if (!valueElem || !inputElem || !editBtn || !saveBtn) return;
+                
+                // When edit button is clicked
+                editBtn.addEventListener('click', function() {
+                    // Show input field and save button
+                    valueElem.style.display = 'none';
+                    inputElem.style.display = 'inline-block';
+                    saveBtn.style.display = 'inline-block';
+                    inputElem.focus();
+                });
+                
+                // When save button is clicked
+                saveBtn.addEventListener('click', function() {
+                    const newValue = inputElem.value.trim();
+                    
+                    // Update the displayed value if input is not empty
+                    if (newValue) {
+                        // For links, we don't change the text display, just the underlying href
+                        if (fieldId === 'linkedin' || fieldId === 'github' || fieldId === 'website') {
+                            // Update the link in the backend (would require an AJAX call in a real app)
+                            console.log(`Updated ${fieldId} to: ${newValue}`);
+                        } else {
+                            valueElem.textContent = newValue;
+                        }
+                        
+                        // In a real application, you would send this change to the server
+                        console.log(`Updated ${fieldId} to: ${newValue}`);
+                    }
+                    
+                    // Switch back to display mode
+                    valueElem.style.display = 'inline-block';
+                    inputElem.style.display = 'none';
+                    saveBtn.style.display = 'none';
+                });
+                
+                // Allow saving with Enter key
+                inputElem.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        saveBtn.click();
+                    }
+                });
+            }
+            
+            // Set up editable fields for all contact information
+            const editableFields = ['email', 'phone', 'address', 'linkedin', 'github', 'website'];
+            editableFields.forEach(field => setupEditableField(field));
+        });
+    </script>
+</body>
+</html>
